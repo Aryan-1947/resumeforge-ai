@@ -1,73 +1,25 @@
 function StatsCards({ result }) {
+  const stats = [
+    { label: "MATCHED", value: result.ats_analysis.matched_skills.length, color: "#22C55E" },
+    { label: "MISSING", value: result.ats_analysis.missing_skills.length, color: "#EF4444" },
+    { label: "ROLE", value: result.target_role || "AI Role", color: "var(--amber)", small: true },
+  ];
 
   return (
-
-    <div className="grid md:grid-cols-4 gap-6">
-
-      <div className="bg-white rounded-2xl shadow-lg p-6 text-center">
-
-        <h3 className="text-lg font-semibold text-gray-500">
-
-          ATS Score
-
-        </h3>
-
-        <p className="text-4xl font-bold text-blue-700 mt-3">
-
-          {result.ats_analysis.ats_score}%
-
-        </p>
-
-      </div>
-
-      <div className="bg-white rounded-2xl shadow-lg p-6 text-center">
-
-        <h3 className="text-lg font-semibold text-gray-500">
-
-          Matched Skills
-
-        </h3>
-
-        <p className="text-4xl font-bold text-green-600 mt-3">
-
-          {result.ats_analysis.matched_skills.length}
-
-        </p>
-
-      </div>
-
-      <div className="bg-white rounded-2xl shadow-lg p-6 text-center">
-
-        <h3 className="text-lg font-semibold text-gray-500">
-
-          Missing Skills
-
-        </h3>
-
-        <p className="text-4xl font-bold text-red-600 mt-3">
-
-          {result.ats_analysis.missing_skills.length}
-
-        </p>
-
-      </div>
-
-      <div className="bg-white rounded-2xl shadow-lg p-6 text-center">
-
-        <h3 className="text-lg font-semibold text-gray-500">
-
-          Target Role
-
-        </h3>
-
-        <p className="text-xl font-bold text-purple-700 mt-3">
-
-          {result.target_role || "AI Role"}
-
-        </p>
-
-      </div>
-
+    <div className="grid grid-cols-3 rounded-xl overflow-hidden" style={{ border: '1px solid var(--border)' }}>
+      {stats.map(({ label, value, color, small }, i) => (
+        <div key={label} className="p-4" style={{
+          backgroundColor: 'var(--surface)',
+          borderRight: i < stats.length - 1 ? '1px solid var(--border)' : 'none'
+        }}>
+          <p className="text-[10px] font-mono uppercase tracking-widest mb-1" style={{ color: 'var(--text-faint)' }}>
+            {label}
+          </p>
+          <p className={`font-black font-mono leading-tight ${small ? "text-sm" : "text-2xl"}`} style={{ color }}>
+            {value}
+          </p>
+        </div>
+      ))}
     </div>
   );
 }

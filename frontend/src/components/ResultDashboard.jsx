@@ -1,108 +1,56 @@
-import StatsCards from "./StatsCards";
 import { motion } from "framer-motion";
+import StatsCards from "./StatsCards";
 import ATSProgressBar from "./ATSProgressBar";
+import SkillSection from "./SkillSection";
+import SuggestionsSection from "./SuggestionsSection";
 import OriginalResumePreview from "./OriginalResumePreview";
 import ResumePreview from "./ResumePreview";
 import CoverLetterSection from "./CoverLetterSection";
-import SuggestionsSection from "./SuggestionsSection";
-import SkillSection from "./SkillSection";
 import DownloadButtons from "./DownloadButtons";
+
 function ResultDashboard({ result }) {
-
   return (
-
     <motion.div
-  className="space-y-14"
-  initial={{ opacity: 0, y: 60 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ duration: 0.7, ease: "easeOut" }}
->
-  
-  <StatsCards result={result} />
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+    >
+      <div className="flex items-center gap-3 mb-6">
+        <div className="h-px flex-1" style={{ backgroundColor: 'var(--border)' }} />
+        <span className="text-xs font-mono font-semibold uppercase tracking-widest" style={{ color: 'var(--text-faint)' }}>
+          ✦ ANALYSIS RESULTS
+        </span>
+        <div className="h-px flex-1" style={{ backgroundColor: 'var(--border)' }} />
+      </div>
 
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        {/* LEFT */}
+        <div className="xl:col-span-2 space-y-6">
+          <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--border)' }}>
+            <div className="grid grid-cols-1 md:grid-cols-2">
+              <div style={{ borderRight: '1px solid var(--border)' }}>
+                <OriginalResumePreview resume={result.original_resume} />
+              </div>
+              <div>
+                <ResumePreview resume={result.optimized_resume} />
+              </div>
+            </div>
+          </div>
+          <SuggestionsSection suggestions={result.suggestions} />
+          <CoverLetterSection coverLetter={result.cover_letter} />
+        </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-
-  {/* ATS SCORE */}
-
-  <ATSProgressBar
-  score={result.ats_analysis.ats_score}
-/>
-
-  {/* MATCH COUNT */}
-
-  <div className="bg-green-600 text-white rounded-2xl p-6 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition duration-300">
-
-    <h2 className="text-xl font-semibold">
-      Matched Skills
-    </h2>
-
-    <p className="text-5xl font-extrabold mt-4">
-      {result.ats_analysis.matched_count}
-    </p>
-
-  </div>
-
-  {/* TOTAL SKILLS */}
-
-  <div className="bg-red-600 text-white rounded-2xl p-6 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition duration-300">
-
-    <h2 className="text-xl font-semibold">
-      Missing Skills
-    </h2>
-
-    <p className="text-5xl font-extrabold mt-4">
-      {result.ats_analysis.missing_skills.length}
-    </p>
-
-  </div>
-
-</div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-
-  <SkillSection
-    title="Matched Skills"
-    skills={result.ats_analysis.matched_skills}
-    color="text-green-600"
-  />
-
-  <SkillSection
-    title="Missing Skills"
-    skills={result.ats_analysis.missing_skills}
-    color="text-red-600"
-  />
-
-</div>
-
-
-<SuggestionsSection
-  suggestions={result.suggestions}
-/>
-
-
-      {/* BEFORE VS AFTER */}
-
-<div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6">
-
-  <OriginalResumePreview
-  resume={result.original_resume}
-/>
-
- <ResumePreview
-  resume={result.optimized_resume}
-/>
-
-</div>
-
-
-<CoverLetterSection
-  coverLetter={result.cover_letter}
-/>
-
-
-<DownloadButtons result={result} />
-
+        {/* RIGHT sidebar */}
+        <div className="xl:col-span-1">
+          <div className="sticky top-24 space-y-4">
+            <ATSProgressBar score={result.ats_analysis.ats_score} />
+            <StatsCards result={result} />
+            <SkillSection title="Matched Skills" skills={result.ats_analysis.matched_skills} />
+            <SkillSection title="Missing Skills" skills={result.ats_analysis.missing_skills} />
+            <DownloadButtons result={result} />
+          </div>
+        </div>
+      </div>
     </motion.div>
   );
 }

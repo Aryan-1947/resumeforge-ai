@@ -116,9 +116,7 @@ def clean_resume_text(text):
 def merge_broken_lines(text):
 
     lines = text.split("\n")
-
     merged_lines = []
-
     current_line = ""
 
     bullet_starters = ("-", "•", "*")
@@ -133,71 +131,77 @@ def merge_broken_lines(text):
         "SUMMARY"
     ]
 
-    for line in lines:
+    # Patterns that indicate a line should NOT be merged
+    # (contact info, dates, short standalone lines)
+    def is_standalone_line(line):
+        standalone_patterns = [
+            r"^\+?\d[\d\s\-]{7,}",          # phone numbers
+            r"[a-zA-Z0-9._%+-]+@",           # email
+            r"^https?://|linkedin|github",    # URLs
+            r"\d{4}",                         # years/dates
+            r"^[A-Z][a-z]+\s[A-Z][a-z]+",   # Name (two capitalized words)
+            r"fresher|intern|engineer|developer|scientist",  # job titles
+            r"b\.tech|m\.tech|b\.sc|m\.sc|bachelor|master|phd",  # degrees
+        ]
+        line_lower = line.lower()
+        for pattern in standalone_patterns:
+            if re.search(pattern, line_lower):
+                return True
+        # Short lines (under 60 chars) are likely standalone
+        if len(line) < 60:
+            return True
+        return False
 
+    for line in lines:
         line = line.strip()
 
         if not line:
+            if current_line:
+                merged_lines.append(current_line.strip())
+                current_line = ""
+            merged_lines.append("")
             continue
 
-        # -----------------------------------
-        # NEW SECTION HEADER
-        # -----------------------------------
-
+        # Section headers
         if line.upper() in section_headers:
-
             if current_line:
                 merged_lines.append(current_line.strip())
-
+                current_line = ""
             merged_lines.append(f"\n{line}\n")
-
-            current_line = ""
-
             continue
 
-        # -----------------------------------
-        # BULLET POINT
-        # -----------------------------------
-
+        # Bullet points
         if line.startswith(bullet_starters):
-
             if current_line:
                 merged_lines.append(current_line.strip())
-
             current_line = line
-
             continue
 
-        # -----------------------------------
-        # CONTINUATION LINE
-        # -----------------------------------
-
-        if current_line:
-
-            # merge fragmented sentence
-            if not current_line.endswith((".", "!", "?", ":")):
-
-                current_line += " " + line
-
-            else:
-
+        # Standalone lines — don't merge
+        if is_standalone_line(line):
+            if current_line:
                 merged_lines.append(current_line.strip())
+                current_line = ""
+            merged_lines.append(line)
+            continue
 
+        # Long descriptive lines — try merging only if continuation
+        if current_line:
+            if not current_line.endswith((".", "!", "?", ":")):
+                current_line += " " + line
+            else:
+                merged_lines.append(current_line.strip())
                 current_line = line
-
         else:
-
             current_line = line
-
-    # -----------------------------------
-    # FINAL APPEND
-    # -----------------------------------
 
     if current_line:
-
         merged_lines.append(current_line.strip())
 
-    return "\n".join(merged_lines)
+    # Clean up excessive blank lines
+    result = "\n".join(merged_lines)
+    result = re.sub(r"\n{3,}", "\n\n", result)
+    return result
 
 
 

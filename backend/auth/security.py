@@ -1,97 +1,49 @@
-import os
-from dotenv import load_dotenv
-from datetime import datetime, timedelta
-from jose import JWTError, jwt
-from passlib.context import CryptContext
+import jwt
+import requests
+from functools import lru_cache
+
+AUTH0_DOMAIN = "dev-zot4kk3hoskmk6k4.us.auth0.com"
+AUTH0_AUDIENCE = "https://resumeforge-api"
+ALGORITHMS = ["RS256"]
 
 
-# =========================================
-# JWT CONFIG
-# =========================================
+@lru_cache(maxsize=1)
+def get_jwks():
+    url = f"https://{AUTH0_DOMAIN}/.well-known/jwks.json"
+    response = requests.get(url)
+    return response.json()
 
-load_dotenv()
-
-SECRET_KEY = os.getenv("SECRET_KEY")
-
-ALGORITHM = "HS256"
-
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
-
-
-
-
-# =========================================
-# PASSWORD HASHING
-# =========================================
-
-pwd_context = CryptContext(
-    schemes=["bcrypt"],
-    deprecated="auto"
-)
-
-
-def hash_password(password: str):
-
-    return pwd_context.hash(password)
-
-
-def verify_password(
-    plain_password: str,
-    hashed_password: str
-):
-
-    return pwd_context.verify(
-        plain_password,
-        hashed_password
-    )
-
-
-
-
-# =========================================
-# JWT TOKEN CREATION
-# =========================================
-
-def create_access_token(data: dict):
-
-    to_encode = data.copy()
-
-    expire = (
-        datetime.utcnow()
-        + timedelta(
-            minutes=ACCESS_TOKEN_EXPIRE_MINUTES
-        )
-    )
-
-    to_encode.update(
-        {"exp": expire}
-    )
-
-    encoded_jwt = jwt.encode(
-        to_encode,
-        SECRET_KEY,
-        algorithm=ALGORITHM
-    )
-
-    return encoded_jwt
-
-
-# =========================================
-# JWT TOKEN VALIDATION
-# =========================================
 
 def verify_access_token(token: str):
-
     try:
+        jwks = get_jwks()
+        unverified_header = jwt.get_unverified_header(token)
+
+        rsa_key = None
+        for key in jwks["keys"]:
+            if key["kid"] == unverified_header["kid"]:
+                rsa_key = jwt.algorithms.RSAAlgorithm.from_jwk(key)
+                break
+
+        if rsa_key is None:
+            print("No matching key found in JWKS")
+            return None
 
         payload = jwt.decode(
             token,
-            SECRET_KEY,
-            algorithms=[ALGORITHM]
+            rsa_key,
+            algorithms=ALGORITHMS,
+            audience=AUTH0_AUDIENCE,
+            issuer=f"https://{AUTH0_DOMAIN}/",
         )
-
         return payload
 
-    except JWTError:
-
+    except jwt.ExpiredSignatureError:
+        print("Token expired")
+        return None
+    except jwt.InvalidTokenError as e:
+        print(f"Invalid token: {e}")
+        return None
+    except Exception as e:
+        print(f"Token verification error: {e}")
         return None
