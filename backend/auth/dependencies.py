@@ -20,20 +20,30 @@ def get_current_user(
     auth0_id = payload.get("sub")
 
     db = SessionLocal()
+
     try:
         user = db.query(User).filter(User.auth0_id == auth0_id).first()
 
         # Auto-create user on first login
         if not user:
+            email = payload.get("email") or f"{auth0_id}@noemail.resumeforge.ai"
+
             user = User(
                 auth0_id=auth0_id,
-                email=payload.get("email", ""),
+                email=email,
                 username=payload.get("nickname", auth0_id),
             )
+
             db.add(user)
-            db.commit()
-            db.refresh(user)
+
+            try:
+                db.commit()
+                db.refresh(user)
+            except Exception:
+                db.rollback()
+                user = db.query(User).filter(User.auth0_id == auth0_id).first()
 
         return user
+
     finally:
         db.close()
