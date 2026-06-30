@@ -33,25 +33,25 @@ function Navbar({ darkMode, setDarkMode }) {
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
         {isAuthenticated && (
           <>
             <span className="hidden md:block text-xs font-mono uppercase tracking-widest" style={{ color: 'var(--text-faint)' }}>
               {user?.nickname || user?.name || user?.email}
             </span>
             <Link
-              to="/history"
-              className="flex items-center gap-1.5 text-xs font-mono font-semibold uppercase tracking-widest px-3 py-2 rounded-lg transition-colors"
-              style={{ color: 'var(--text-muted)', border: '1px solid var(--border)' }}
-            >
-              <FiClock className="text-sm" /> History
-            </Link>
+  to="/history"
+  className="flex items-center gap-1 text-xs font-mono font-semibold uppercase tracking-widest px-2 sm:px-3 py-2 rounded-lg transition-colors"
+  style={{ color: 'var(--text-muted)', border: '1px solid var(--border)' }}
+>
+  <FiClock className="text-sm" /> <span className="hidden sm:inline">History</span>
+</Link>
             <Link
-              to="/app"
-              className="flex items-center gap-1.5 text-xs font-mono font-semibold uppercase tracking-widest bg-amber-500 hover:bg-amber-600 text-black px-3 py-2 rounded-lg transition-colors"
-            >
-              <FiZap className="text-sm" /> Analyze
-            </Link>
+  to="/app"
+  className="flex items-center gap-1 text-xs font-mono font-semibold uppercase tracking-widest bg-amber-500 hover:bg-amber-600 text-black px-2 sm:px-3 py-2 rounded-lg transition-colors"
+>
+  <FiZap className="text-sm" /> <span className="hidden sm:inline">Analyze</span>
+</Link>
             <button
               onClick={handleLogout}
               className="p-2 rounded-lg transition-colors hover:text-red-400"

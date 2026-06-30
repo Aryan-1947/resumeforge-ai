@@ -9,18 +9,22 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Landing from "./pages/Landing";
 
 function App() {
-  const [darkMode, setDarkMode] = useState(true);
+  const [darkMode, setDarkMode] = useState(() => {
+  const saved = localStorage.getItem("darkMode");
+  return saved !== null ? saved === "true" : true;
+});
   const { isLoading } = useAuth0();
 
   useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.remove("light");
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-      document.documentElement.classList.add("light");
-    }
-  }, [darkMode]);
+  localStorage.setItem("darkMode", darkMode);
+  if (darkMode) {
+    document.documentElement.classList.remove("light");
+    document.documentElement.classList.add("dark");
+  } else {
+    document.documentElement.classList.remove("dark");
+    document.documentElement.classList.add("light");
+  }
+}, [darkMode]);
 
   if (isLoading) {
     return (
