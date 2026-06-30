@@ -16,7 +16,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         domain="dev-zot4kk3hoskmk6k4.us.auth0.com"
         clientId="W7PocqFJikBAroCMfxvcCHXtZhl5Agvk"
         authorizationParams={{
-          redirect_uri: "http://localhost:5173",
+          redirect_uri: window.location.origin,
           audience: "https://resumeforge-api",
           scope: "openid profile email",
         }}
