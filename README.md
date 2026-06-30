@@ -8,8 +8,10 @@ ResumeForge AI helps job seekers tailor their resumes to specific job descriptio
 
 ## Live Demo
 
-- **Frontend:** [resumeforge-ai.vercel.app](https://resumeforge-ai.vercel.app)
-- **Backend:** [resumeforge-ai.onrender.com](https://resumeforge-ai.onrender.com)
+- **Frontend:** [resumeforge-ai-frontend.vercel.app](https://resumeforge-ai-frontend.vercel.app)
+- **Backend:** [resumeforge-ai-backend-bys4.onrender.com](https://resumeforge-ai-backend-bys4.onrender.com)
+
+> Note: The backend is hosted on Render's free tier, which spins down after inactivity. The first request may take 30–50 seconds to wake the server.
 
 ---
 
