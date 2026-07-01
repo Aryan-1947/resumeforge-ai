@@ -1,508 +1,237 @@
-#
-def get_priority_weight(priority):
-
-    weights = {
-
-        "high": 3,
-
-        "medium": 2,
-
-        "low": 1
-    }
-
-    return weights.get(priority, 1)
-
-
-
-#
-def calculate_responsibility_score(
-    resume_data,
-    jd_data
-):
-
-    resume_experience = " ".join(
-        resume_data.get("experience", [])
-    ).lower()
-
-    jd_responsibilities = jd_data.get(
-        "responsibilities",
-        []
-    )
-
-    if not jd_responsibilities:
-        return 0
-
-    matched_responsibilities = 0
-
-    for responsibility in jd_responsibilities:
-
-        responsibility_words = responsibility.lower().split()
-
-        # -----------------------------------
-        # SIMPLE CONTEXT MATCHING
-        # -----------------------------------
-
-        overlap = sum(
-            word in resume_experience
-            for word in responsibility_words
-        )
-
-        # -----------------------------------
-        # MATCH THRESHOLD
-        # -----------------------------------
-
-        if overlap >= max(
-            2,
-            len(responsibility_words) // 4
-        ):
-
-            matched_responsibilities += 1
-
-    responsibility_score = (
-        matched_responsibilities
-        / len(jd_responsibilities)
-    ) * 100
-
-    return responsibility_score
-
-
-
-
-#
-def calculate_intelligence_alignment(
-    resume_data,
-    jd_data
-):
-
-    resume_intelligence = resume_data.get(
-        "experience_intelligence",
-        {}
-    )
-
-    jd_intelligence = jd_data.get(
-        "jd_intelligence",
-        {}
-    )
-
-    alignment_score = 0
-
-    total_checks = 0
-
-    # -----------------------------------
-    # AI ROLE ALIGNMENT
-    # -----------------------------------
-
-    if jd_intelligence.get("ai_heavy_role"):
-
-        total_checks += 1
-
-        if resume_intelligence.get(
-            "technical_density"
-        ) in ["medium", "high"]:
-
-            alignment_score += 1
-
-    # -----------------------------------
-    # DEPLOYMENT ALIGNMENT
-    # -----------------------------------
-
-    if jd_intelligence.get(
-        "deployment_focused"
-    ):
-
-        total_checks += 1
-
-        if resume_intelligence.get(
-            "project_complexity"
-        ) in ["intermediate", "advanced"]:
-
-            alignment_score += 1
-
-    # -----------------------------------
-    # LEADERSHIP ALIGNMENT
-    # -----------------------------------
-
-    if jd_intelligence.get(
-        "leadership_role"
-    ):
-
-        total_checks += 1
-
-        if resume_intelligence.get(
-            "has_leadership"
-        ):
-
-            alignment_score += 1
-
-    # -----------------------------------
-    # CLOUD / BACKEND ALIGNMENT
-    # -----------------------------------
-
-    if (
-        jd_intelligence.get(
-            "cloud_heavy_role"
-        )
-        or
-        jd_intelligence.get(
-            "backend_heavy_role"
-        )
-    ):
-
-        total_checks += 1
-
-        if resume_intelligence.get(
-            "project_complexity"
-        ) != "basic":
-
-            alignment_score += 1
-
-    # -----------------------------------
-    # EXPERIENCE LEVEL ALIGNMENT
-    # -----------------------------------
-
-    jd_experience = jd_data.get(
-        "experience_level",
-        ""
-    ).lower()
-
-    resume_experience = resume_intelligence.get(
-        "experience_level",
-        ""
-    ).lower()
-
-    if jd_experience != "not specified":
-
-        total_checks += 1
-
-        if (
-            jd_experience == "entry-level"
-            and resume_experience == "fresher"
-        ):
-
-            alignment_score += 1
-
-        elif (
-            jd_experience == "mid-level"
-            and resume_experience in [
-                "mid-level",
-                "senior"
-            ]
-        ):
-
-            alignment_score += 1
-
-        elif (
-            jd_experience == "senior-level"
-            and resume_experience == "senior"
-        ):
-
-            alignment_score += 1
-
-    # -----------------------------------
-    # FINAL SCORE
-    # -----------------------------------
-
-    if total_checks == 0:
-        return 100
-
-    return (
-        alignment_score
-        / total_checks
-    ) * 100
-
-
+import re
 
 # -----------------------------------
-# IMPORTANT SKILL WEIGHTS
-# -----------------------------------
-
-IMPORTANT_SKILLS = {
-
-    "python": 10,
-
-    "machine learning": 10,
-
-    "deep learning": 9,
-
-    "tensorflow": 8,
-
-    "pytorch": 8,
-
-    "sql": 7,
-
-    "docker": 7,
-
-    "kubernetes": 7,
-
-    "aws": 8,
-
-    "fastapi": 7,
-
-    "django": 6,
-
-    "react": 6,
-
-    "mongodb": 5,
-
-    "nlp": 8,
-
-    "computer vision": 8,
-
-    "data analysis": 7
-}
-
-
-
-# -----------------------------------
-# STRONG ACTION VERBS
+# ACTION VERBS
 # -----------------------------------
 
 ACTION_VERBS = [
-
-    "developed",
-    "built",
-    "implemented",
-    "optimized",
-    "designed",
-    "engineered",
-    "deployed",
-    "created",
-    "automated",
-    "integrated",
-    "managed",
-    "improved"
+    "developed", "built", "implemented", "optimized", "designed",
+    "engineered", "deployed", "created", "automated", "integrated",
+    "managed", "improved", "architected", "led", "delivered",
+    "reduced", "increased", "launched", "scaled", "migrated"
 ]
 
 
+# -----------------------------------
+# DYNAMIC KEYWORD WEIGHT FROM JD
+# -----------------------------------
 
-
-def calculate_ats_score(
-
-    resume_data,
-
-    jd_data
-):
-
-    # -----------------------------------
-    # BASIC SKILL SETS
-    # -----------------------------------
-
-    resume_skills = set(
-
-        skill.lower()
-
-        for skill in resume_data.get(
-            "skills",
-            []
-        )
-    )
-
-    jd_skills = set(
-
-        skill.lower()
-
-        for skill in jd_data.get(
-            "required_skills",
-            []
-        )
-    )
-
-    matched_skills = list(
-        resume_skills.intersection(jd_skills)
-    )
-
-    missing_skills = list(
-        jd_skills - resume_skills
-    )
-
-    # -----------------------------------
-    # WEIGHTED SKILL SCORING
-    # -----------------------------------
-
-    total_possible_weight = 0
-
-    achieved_weight = 0
-
-    weighted_matches = {}
-
+def calculate_dynamic_skill_weights(jd_skills, weighted_skills):
+    """
+    Instead of hardcoded weights, derive weights from JD skill frequency.
+    Skills mentioned more in the JD get higher weight automatically.
+    """
+    weights = {}
     for skill in jd_skills:
+        skill_lower = skill.lower()
+        jd_info = weighted_skills.get(skill_lower, {})
+        priority = jd_info.get("priority", "low")
+        frequency = jd_info.get("frequency", 1)
 
-        weight = IMPORTANT_SKILLS.get(
-            skill,
-            5
-        )
+        if priority == "high":
+            weights[skill_lower] = 3 + min(frequency, 5)
+        elif priority == "medium":
+            weights[skill_lower] = 2 + min(frequency, 3)
+        else:
+            weights[skill_lower] = 1 + min(frequency, 2)
 
-        total_possible_weight += weight
+    return weights
 
-        if skill in resume_skills:
 
-            achieved_weight += weight
+# -----------------------------------
+# SECTION COMPLETENESS SCORE
+# -----------------------------------
 
-            weighted_matches[skill] = weight
+def calculate_section_completeness(resume_data):
+    """
+    Score based on presence of important resume sections.
+    """
+    sections = resume_data.get("sections", {})
 
-    if total_possible_weight == 0:
+    section_scores = {
+        "skills": 30,
+        "experience": 30,
+        "education": 25,
+        "projects": 10,
+        "certifications": 5,
+    }
 
-        weighted_skill_score = 0
+    total_possible = sum(section_scores.values())
+    achieved = 0
 
+    for section, score in section_scores.items():
+        content = sections.get(section, "")
+        if content and len(content.strip()) > 10:
+            achieved += score
+
+    return (achieved / total_possible) * 100
+
+
+# -----------------------------------
+# ACTION VERB SCORE
+# -----------------------------------
+
+def calculate_action_verb_score(resume_data):
+    """
+    Score based on quality and variety of action verbs used.
+    """
+    resume_text = str(resume_data.get("sections", {})).lower()
+
+    found_verbs = [verb for verb in ACTION_VERBS if verb in resume_text]
+    unique_verb_count = len(set(found_verbs))
+
+    # Reward variety — using 10+ different action verbs = full score
+    score = min((unique_verb_count / 10) * 100, 100)
+    return score
+
+
+# -----------------------------------
+# EXPERIENCE ALIGNMENT SCORE
+# -----------------------------------
+
+def calculate_experience_alignment(resume_data, jd_data):
+    """
+    Score based on how well candidate experience matches JD requirements.
+    """
+    resume_intelligence = resume_data.get("experience_intelligence", {})
+    jd_intelligence = jd_data.get("jd_intelligence", {})
+
+    score = 0
+    checks = 0
+
+    # Experience level match
+    jd_exp = jd_data.get("experience_level", "not specified").lower()
+    resume_exp = resume_intelligence.get("experience_level", "unknown").lower()
+
+    if jd_exp != "not specified":
+        checks += 1
+        if jd_exp == "entry-level" and resume_exp == "fresher":
+            score += 1
+        elif jd_exp == "mid-level" and resume_exp in ["mid-level", "senior"]:
+            score += 1
+        elif jd_exp == "senior-level" and resume_exp == "senior":
+            score += 1
+        elif jd_exp == "entry-level" and resume_exp in ["mid-level", "senior"]:
+            score += 0.8  # overqualified but still relevant
+
+    # AI role alignment
+    if jd_intelligence.get("ai_heavy_role"):
+        checks += 1
+        if resume_intelligence.get("technical_density") in ["medium", "high"]:
+            score += 1
+
+    # Deployment alignment
+    if jd_intelligence.get("deployment_focused"):
+        checks += 1
+        if resume_intelligence.get("project_complexity") in ["intermediate", "advanced"]:
+            score += 1
+
+    # Leadership alignment
+    if jd_intelligence.get("leadership_role"):
+        checks += 1
+        if resume_intelligence.get("has_leadership"):
+            score += 1
+
+    # Project complexity
+    checks += 1
+    complexity = resume_intelligence.get("project_complexity", "basic")
+    if complexity == "advanced":
+        score += 1
+    elif complexity == "intermediate":
+        score += 0.6
     else:
+        score += 0.2
 
-        weighted_skill_score = (
-            achieved_weight
-            /
-            total_possible_weight
-        ) * 100
+    if checks == 0:
+        return 50  # neutral score if no data
 
-    # -----------------------------------
-    # ACTION VERB ANALYSIS
-    # -----------------------------------
+    return (score / checks) * 100
 
-    resume_text = str(
-        resume_data.get(
-            "sections",
-            {}
-        )
-    ).lower()
 
-    action_verb_count = sum(
+# -----------------------------------
+# MAIN ATS SCORE CALCULATOR
+# -----------------------------------
 
-        verb in resume_text
+def calculate_ats_score(resume_data, jd_data):
 
-        for verb in ACTION_VERBS
+    # --- Skill Sets ---
+    resume_skills = set(
+        skill.lower() for skill in resume_data.get("skills", [])
+    )
+    jd_skills = set(
+        skill.lower() for skill in jd_data.get("required_skills", [])
     )
 
-    action_verb_score = min(
-        action_verb_count * 5,
-        100
+    matched_skills = list(resume_skills.intersection(jd_skills))
+    missing_skills = list(jd_skills - resume_skills)
+
+    # --- Dynamic Weighted Keyword Score ---
+    weighted_skills = jd_data.get("weighted_skills", {})
+    dynamic_weights = calculate_dynamic_skill_weights(jd_skills, weighted_skills)
+
+    total_possible_weight = sum(dynamic_weights.values()) or 1
+    achieved_weight = sum(
+        dynamic_weights.get(skill, 1)
+        for skill in matched_skills
     )
 
-    # -----------------------------------
-    # EXPERIENCE INTELLIGENCE
-    # -----------------------------------
+    keyword_score = (achieved_weight / total_possible_weight) * 100
 
-    experience_intelligence = (
-        resume_data.get(
-            "experience_intelligence",
-            {}
-        )
-    )
+    weighted_matches = {
+        skill: dynamic_weights.get(skill, 1)
+        for skill in matched_skills
+    }
 
-    experience_level = (
-        experience_intelligence.get(
-            "experience_level",
-            "unknown"
-        )
-    )
+    # --- Section Completeness Score ---
+    section_score = calculate_section_completeness(resume_data)
 
-    experience_bonus = 0
+    # --- Action Verb Score ---
+    action_verb_score = calculate_action_verb_score(resume_data)
 
-    if experience_level == "senior":
-
-        experience_bonus = 10
-
-    elif experience_level == "mid-level":
-
-        experience_bonus = 6
-
-    elif experience_level == "fresher":
-
-        experience_bonus = 3
+    # --- Experience Alignment Score ---
+    experience_score = calculate_experience_alignment(resume_data, jd_data)
 
     # -----------------------------------
-    # PROJECT COMPLEXITY BONUS
-    # -----------------------------------
-
-    project_complexity = (
-        experience_intelligence.get(
-            "project_complexity",
-            "basic"
-        )
-    )
-
-    project_bonus = 0
-
-    if project_complexity == "advanced":
-
-        project_bonus = 10
-
-    elif project_complexity == "intermediate":
-
-        project_bonus = 5
-
-    # -----------------------------------
-    # FINAL ATS SCORE
+    # FINAL WEIGHTED SCORE
+    # Keyword Match:       50%
+    # Section Completeness: 25%
+    # Action Verbs:        15%
+    # Experience Alignment: 10%
     # -----------------------------------
 
     final_score = (
-
-        weighted_skill_score * 0.65
-
-        +
-
-        action_verb_score * 0.15
-
-        +
-
-        experience_bonus
-
-        +
-
-        project_bonus
+        keyword_score * 0.50 +
+        section_score * 0.25 +
+        action_verb_score * 0.15 +
+        experience_score * 0.10
     )
 
-    final_score = min(
-        round(final_score, 2),
-        100
-    )
+    final_score = min(round(final_score, 2), 100)
 
-    # -----------------------------------
-    # SECTION ANALYSIS
-    # -----------------------------------
-
-    sections = resume_data.get(
-        "sections",
-        {}
-    )
-
+    # --- Section Analysis ---
+    sections = resume_data.get("sections", {})
     section_analysis = {
-
-        "has_projects_section":
-            bool(sections.get("projects")),
-
-        "has_experience_section":
-            bool(sections.get("experience")),
-
-        "has_skills_section":
-            bool(sections.get("skills")),
-
-        "has_certifications_section":
-            bool(sections.get("certifications"))
+        "has_projects_section": bool(sections.get("projects")),
+        "has_experience_section": bool(sections.get("experience")),
+        "has_skills_section": bool(sections.get("skills")),
+        "has_certifications_section": bool(sections.get("certifications")),
     }
 
-    # -----------------------------------
-    # FINAL RESULT
-    # -----------------------------------
+    # --- Experience Info ---
+    experience_intelligence = resume_data.get("experience_intelligence", {})
 
-    ats_result = {
-
+    return {
         "ats_score": final_score,
-
         "matched_skills": matched_skills,
-
         "missing_skills": missing_skills,
-
         "weighted_matches": weighted_matches,
-
         "total_jd_skills": len(jd_skills),
-
         "matched_count": len(matched_skills),
-
-        "action_verb_score": action_verb_score,
-
-        "experience_level": experience_level,
-
-        "project_complexity": project_complexity,
-
-        "section_analysis": section_analysis
+        "action_verb_score": round(action_verb_score, 2),
+        "section_score": round(section_score, 2),
+        "keyword_score": round(keyword_score, 2),
+        "experience_score": round(experience_score, 2),
+        "experience_level": experience_intelligence.get("experience_level", "unknown"),
+        "project_complexity": experience_intelligence.get("project_complexity", "basic"),
+        "section_analysis": section_analysis,
     }
-
-    return ats_result
