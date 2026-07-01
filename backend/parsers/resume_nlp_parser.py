@@ -51,34 +51,7 @@ SECTION_HEADERS = {
 # SKILLS DATABASE
 # -----------------------------
 
-SKILLS_DB = [
-    "python",
-    "java",
-    "c++",
-    "machine learning",
-    "deep learning",
-    "tensorflow",
-    "pytorch",
-    "sql",
-    "mongodb",
-    "docker",
-    "kubernetes",
-    "aws",
-    "fastapi",
-    "flask",
-    "django",
-    "react",
-    "node.js",
-    "git",
-    "linux",
-    "data analysis",
-    "pandas",
-    "numpy",
-    "opencv",
-    "langchain",
-    "nlp",
-    "computer vision"
-]
+from parsers.skills_db import SKILLS_DB
 
 
 
