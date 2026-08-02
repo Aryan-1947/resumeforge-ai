@@ -2,7 +2,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { FiZap, FiTarget, FiFileText, FiMail, FiArrowRight, FiSun, FiMoon, FiUpload, FiCpu, FiDownload } from "react-icons/fi";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
-import { IconTextScanAi } from "@tabler/icons-react";
+import Logo from "../components/Logo";
 import { useNavigate } from "react-router-dom";
 
 const stats = [
@@ -29,16 +29,16 @@ const howItWorks = [
 ];
 
 function Landing({ darkMode, setDarkMode }) {
-  const { loginWithRedirect, isAuthenticated } = useAuth0();
+  const { isAuthenticated } = useAuth0();
   const navigate = useNavigate();
 
   const handleGetStarted = () => {
-    if (isAuthenticated) {
-      navigate("/app");
-    } else {
-      loginWithRedirect();
-    }
-  };
+  if (isAuthenticated) {
+    navigate("/app");
+  } else {
+    navigate("/login");
+  }
+};
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg)', color: 'var(--text)' }}>
@@ -47,9 +47,7 @@ function Landing({ darkMode, setDarkMode }) {
       <nav className="sticky top-0 z-50 backdrop-blur-md px-6 md:px-10 py-4 flex items-center justify-between"
         style={{ borderBottom: '1px solid var(--border)', backgroundColor: 'var(--bg)' }}>
         <div className="flex items-center gap-2.5">
-          <div className="bg-amber-500 p-2 rounded-lg">
-            <IconTextScanAi size={16} color="black" />
-          </div>
+          <Logo size={32} darkBg={darkMode} />
           <div>
             <span className="text-base font-bold tracking-tight" style={{ color: 'var(--text)' }}>
               ResumeForge<span className="text-amber-500"> AI</span>
@@ -254,9 +252,7 @@ function Landing({ darkMode, setDarkMode }) {
           {/* Brand */}
           <div className="md:col-span-1">
             <div className="flex items-center gap-2 mb-3">
-              <div className="bg-amber-500 p-1.5 rounded-lg">
-                <IconTextScanAi size={14} color="black" />
-              </div>
+              <Logo size={26} darkBg={darkMode} />
               <span className="text-sm font-bold" style={{ color: 'var(--text)' }}>
                 ResumeForge <span className="text-amber-500">AI</span>
               </span>

@@ -7,6 +7,8 @@ import History from "./pages/History";
 import AnalysisDetails from "./pages/AnalysisDetails";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Landing from "./pages/Landing";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 
 function App() {
   const [darkMode, setDarkMode] = useState(() => {
@@ -42,6 +44,8 @@ function App() {
         <Route path="/app" element={<ProtectedRoute><Home darkMode={darkMode} setDarkMode={setDarkMode} /></ProtectedRoute>} />
         <Route path="/history" element={<ProtectedRoute><History darkMode={darkMode} setDarkMode={setDarkMode} /></ProtectedRoute>} />
         <Route path="/analysis/:id" element={<ProtectedRoute><AnalysisDetails darkMode={darkMode} setDarkMode={setDarkMode} /></ProtectedRoute>} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
       </Routes>
     </div>
   );

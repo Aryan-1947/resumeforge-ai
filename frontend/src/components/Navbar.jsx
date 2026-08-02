@@ -1,7 +1,7 @@
 import { useAuth0 } from "@auth0/auth0-react";
 import { useNavigate, Link } from "react-router-dom";
 import { FiSun, FiMoon, FiLogOut, FiClock, FiZap } from "react-icons/fi";
-import { IconTextScanAi } from "@tabler/icons-react";
+import Logo from "../components/Logo";
 import toast from "react-hot-toast";
 
 function Navbar({ darkMode, setDarkMode }) {
@@ -20,9 +20,7 @@ function Navbar({ darkMode, setDarkMode }) {
     }} className="px-6 md:px-10 py-4 flex items-center justify-between sticky top-0 z-50">
 
       <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => navigate("/")}>
-        <div className="bg-amber-500 p-2 rounded-lg">
-          <IconTextScanAi size={16} color="black" />
-        </div>
+        <Logo size={32} darkBg={darkMode} />
         <div>
           <span className="text-base font-bold tracking-tight" style={{ color: 'var(--text)' }}>
             ResumeForge<span className="text-amber-500"> AI</span>

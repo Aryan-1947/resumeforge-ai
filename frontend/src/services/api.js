@@ -12,4 +12,10 @@ export const setAuthToken = (token) => {
   }
 };
 
+// Auto-set token from localStorage if available
+const savedToken = localStorage.getItem("auth0_access_token");
+if (savedToken) {
+  setAuthToken(savedToken);
+}
+
 export default API;
