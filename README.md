@@ -2,7 +2,7 @@
 
 > AI-powered resume optimization platform for the modern job market.
 
-ResumeForge AI helps job seekers tailor their resumes to specific job descriptions, get precise ATS scores, receive AI-powered rewrites, identify missing skills, and generate tailored cover letters — all in under 30 seconds.
+ResumeForge AI helps job seekers tailor their resumes to specific job descriptions, get precise ATS scores, receive AI-powered rewrites, identify missing skills, and generate tailored cover letters — all in under 10 seconds.
 
 ---
 
